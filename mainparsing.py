@@ -17,6 +17,20 @@ url = [
 ]
 
 
+def parsing():
+    for i in url:
+        try:
+            r = requests.get(i, headers=headers)
+        except:
+            print('Сервер не подключен к интернету')
+            break
+        try:
+            soup = BeautifulSoup(r.text, "html.parser")
+            takeprice(soup)
+        except requests.exceptions.ConnectionError:
+            print('Неизвестная шибка')
+
+
 def takeprice(soup):
     quotes = soup.findAll('script')
     itemActivityTickerStart = re.findall(r"(?<=\( )\d+", str(quotes), flags=re.IGNORECASE)
@@ -35,16 +49,6 @@ def takeprice2(itemActivityTickerStart):
     print(ququotes)
 
 
-for i in url:
-    try:
-        r = requests.get(i, headers=headers)
-    except:
-            print('Сервер не подключен к интернету')
-            break
-    try:
-        soup = BeautifulSoup(r.text, "html.parser")
-        takeprice(soup)
-    except requests.exceptions.ConnectionError:
-        print('Неизвестная шибка')
+
 
 
