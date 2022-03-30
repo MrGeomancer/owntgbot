@@ -31,6 +31,7 @@ def parsing():
             print('Неизвестная шибка')
 
 
+
 def takeprice(soup):
     quotes = soup.findAll('script')
     itemActivityTickerStart = re.findall(r"(?<=\( )\d+", str(quotes), flags=re.IGNORECASE)
