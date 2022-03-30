@@ -1,4 +1,3 @@
 import mainparsing
 
 mainparsing.parsing()
-
