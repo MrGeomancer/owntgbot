@@ -27,16 +27,19 @@ def parsing():
         try:
             soup = BeautifulSoup(r.text, "html.parser")
             takeprice(soup)
+            return soup
         except requests.exceptions.ConnectionError:
             print('Неизвестная шибка')
 
 
+def takenames(soup):
+    print (soup)
+
 
 def takeprice(soup):
     quotes = soup.findAll('script')
-    itemActivityTickerStart = re.findall(r"(?<=\( )\d+", str(quotes), flags=re.IGNORECASE)
-    takeprice2(itemActivityTickerStart[2])
-
+    itemActivityTickerStart = re.findall(r"(?<=\( )\d+", str(quotes), flags=re.IGNORECASE)[2]
+    takeprice2(itemActivityTickerStart)
 
 def takeprice2(itemActivityTickerStart):
     price_update2 = 'https://steamcommunity.com/market/itemordershistogram?country=RU&language=russian&currency=5&item_nameid=%s&two_factor=0' \
@@ -49,7 +52,6 @@ def takeprice2(itemActivityTickerStart):
     ququotes = sosoup.find_all('span', class_="market_commodity_orders_header_promote")[1].text
     print(ququotes)
 
-
-
-
+if __name__ == "__main__":
+    soup = parsing()
 
