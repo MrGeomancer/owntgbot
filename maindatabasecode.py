@@ -20,15 +20,20 @@ with sqlite3.connect('database.db') as db:
 
 def caseadd():
     url = input('Дай ссылку на кейс: ')
-    try:
-        price = float(str(input('За сколько ты его покупал?: ')).replace(",", '.'))
-    except:
-        print('дурачок? только числа вводи')
+    if url == 'Отмена':
+        return
+    while True:
         try:
-            price = float(str(input('За сколько ты его покупал?: ')).replace(",", '.'))
-        except ValueError:
-            print('Пошел нахуй')
-            return
+            price = input('За сколько рублей ты его покупал?: ').replace(",", '.')
+            if price == 'Отмена':
+                return
+            price = float(price)
+
+            break
+        except:
+            print('дурачок? только числа вводи')
+            pass
+
     try:
         db = sqlite3.connect('database.db')
         cursor = db.cursor()
