@@ -27,13 +27,14 @@ def parsing():
         try:
             soup = BeautifulSoup(r.text, "html.parser")
             takeprice(soup)
-            return soup
+            takenames(soup)
         except requests.exceptions.ConnectionError:
             print('Неизвестная шибка')
 
 
 def takenames(soup):
-    print (soup)
+    qquotes = soup.find('span', class_='market_listing_item_name').text
+    print(qquotes)
 
 
 def takeprice(soup):
@@ -51,7 +52,10 @@ def takeprice2(itemActivityTickerStart):
     sosoup = BeautifulSoup(data['buy_order_summary'], "html.parser")
     ququotes = sosoup.find_all('span', class_="market_commodity_orders_header_promote")[1].text
     print(ququotes)
+    return r2.text
 
 if __name__ == "__main__":
-    soup = parsing()
+    print(parsing())
 
+
+    pass
