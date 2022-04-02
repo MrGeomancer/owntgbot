@@ -5,17 +5,16 @@ with sqlite3.connect('database.db') as db:
     cursor = db.cursor()
 
     cursor.execute("""CREATE TABLE IF NOT EXISTS cases(
-    id INTEGER PRIMARY KEY,
+    caseid INTEGER PRIMARY KEY,
+    userid TEXT,
     url TEXT,
     token TEXT,
     name TEXT,
-    price REAL
+    price REAL DEFAULT (0) 
     )""")
-    # cursor.execute('ALTER TABLE cases ADD COLUMN token "TEXT"')
-    # url = input('Дай ссылку на кейс: ')
-    # cursor.execute('SELECT id FROM cases WHERE url = ?', [url])
-    # print(cursor.fetchone()[0])
-    # cursor.execute ("INSERT INTO")
+    # cursor.execute('SELECT price FROM cases WHERE url = ?', ['qq'])
+    # caseid = cursor.fetchone()[0]
+    # cursor.execute('ALTER TABLE cases ADD COLUMN userid "TEXT"')
 
 
 def caseadd():
