@@ -2,6 +2,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import json
+import sqlite3
 
 headers = {
 
@@ -9,33 +10,44 @@ headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'Accept-Language': 'ru-UA,ru;q=0.9,en-US;q=0.8,en;q=0.7,ru-RU;q=0.6'}
 
-url = [
-    'https://steamcommunity.com/market/listings/730/Spectrum%20Case',
-    'https://steamcommunity.com/market/listings/730/Snakebite%20Case',
-    'https://steamcommunity.com/market/listings/730/Autograph%20Capsule%20%7C%20Legends%20%28Foil%29%20%7C%20MLG%20Columbus%202016'
-
-]
-
-
-def parsing():
-    for i in url:
-        try:
-            r = requests.get(i, headers=headers)
-        except:
-            print('Сервер не подключен к интернету')
-            break
-        try:
-            soup = BeautifulSoup(r.text, "html.parser")
-            takeprice(soup)
-            takenames(soup)
-        except requests.exceptions.ConnectionError:
-            print('Неизвестная шибка')
+# url = [
+#     'https://steamcommunity.com/market/listings/730/Spectrum%20Case',
+#     'https://steamcommunity.com/market/listings/730/Snakebite%20Case',
+#     'https://steamcommunity.com/market/listings/730/Autograph%20Capsule%20%7C%20Legends%20%28Foil%29%20%7C%20MLG%20Columbus%202016'
+#
+# ]
 
 
-def takenames(soup):
-    qquotes = soup.find('span', class_='market_listing_item_name').text
-    print(qquotes)
+def parsing(url):
+    try:
+        r = requests.get(url, headers=headers)
+    except:
+        print('Сервер не подключен к интернету')
+        return
+    try:
+        soup = BeautifulSoup(r.text, "html.parser")
+        return soup
+    except requests.exceptions.ConnectionError:
+        print('Неизвестная шибка')
 
+
+def takenames(tgid):
+    url=[]
+    caseid=[]
+    with sqlite3.connect('database.db') as db:
+        cursor = db.cursor()
+        cursor.execute('SELECT url FROM cases WHERE userid = ?', [tgid])
+        a = cursor.fetchall()
+        for i in range(len(a)):
+            url.append(a[i][0])
+        cursor.execute('SELECT caseid FROM cases WHERE userid = ?', [tgid])
+        a = cursor.fetchall()
+        for i in range(len(a)):
+            caseid.append(a[i][0])
+        for i in range(len(url)):
+            soup = parsing(url[i])
+            qquotes = soup.find('span', class_='market_listing_item_name').text
+            cursor.execute("UPDATE cases SET name = ? WHERE userid = ? AND caseid = ?", [qquotes, tgid, caseid[i]])
 
 def takeprice(soup):
     quotes = soup.findAll('script')
@@ -55,7 +67,7 @@ def takeprice2(itemActivityTickerStart):
     return r2.text
 
 if __name__ == "__main__":
-    print(parsing())
+    takenames('')
 
 
     pass
