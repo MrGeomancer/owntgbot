@@ -30,7 +30,20 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def buttons(message):
     if (message.text == "👨‍🏫 Мой профиль"):
-        bot.send_message(message.chat.id, text="Пока пусто")
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        btn1 = types.KeyboardButton("❕️Обновить названия")
+        btn2 = types.KeyboardButton("❔️Настроить токены")
+        btn3 = types.KeyboardButton("⭕️Вернуться в главное меню")
+        markup.add(btn1, btn2, btn3)
+        d = maindatabasecode.profileprint(message.from_user.id)
+        v = list(d.keys())
+        sst = '\n'
+        for ind in range(len(d)):
+            sst = sst + '<b>' + str(d[v[ind]][0]) + '</b>' + ' купленный за ' + '<b>' + str(d[v[ind]][1]) + '</b>' + ' рублей.\n'
+        msg = bot.send_message(message.chat.id, text=f"""
+        Привет {message.from_user.first_name}, твои кейсы:{sst}
+        """, reply_markup=markup, parse_mode='html')
+        bot.register_next_step_handler(msg,handler_profileprint)
     elif (message.text == "💼 Добавить кейс"):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("⭕️Вернуться в главное меню"))
@@ -130,6 +143,23 @@ def handler_price(message):
             cursor.execute("DELETE FROM cases WHERE url = ? AND userid = ?", [url, message.from_user.id])
             db.commit()
             start(message)
+
+def handler_profileprint(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    btn1 = types.KeyboardButton("❕️Обновить названия")
+    btn2 = types.KeyboardButton("❔️Настроить токены")
+    btn3 = types.KeyboardButton("⭕️Вернуться в главное меню")
+    markup.add(btn1, btn2, btn3)
+    if (message.text == "⭕️Вернуться в главное меню"):
+        start(message)
+        return
+    elif message.text == '❕️Обновить названия':
+        mainparsing.takenames(message.from_user.id)
+        bot.reply_to(message, 'Названия добавлены в базу!', reply_markup=markup)
+    elif message.text == '❔️Настроить токены':
+        start(message)
+        return
+
 
 if __name__ == '__main__':
     bot.infinity_polling()
