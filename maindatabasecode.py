@@ -1,5 +1,6 @@
 import sqlite3
 import traceback
+import re
 
 with sqlite3.connect('database.db') as db:
     cursor = db.cursor()
@@ -30,25 +31,35 @@ def profileprint(tgid):
             # print(d[i + 1])
     return d
 
-
-if __name__ == "__main__":
-    d = {}
+def deletecase1(tgid):
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
-        cursor.execute('SELECT caseid, name, price FROM cases WHERE userid = ?', [353170432])
+        cursor.execute('SELECT caseid, name FROM cases WHERE userid = ?', [tgid])
         a = cursor.fetchall()
-        # print(a[0][0])
-    for i in range(len(a)):
-        d[a[i][0]] = []
-        d[a[i][0]].append(a[i][1])
-        d[a[i][0]].append(a[i][2])
-        # print(d[i + 1])
-    b = (len(d))
-    #print(str(d[2 + 1][1]))
-    #sst = str(d[0 + 1][0]) + ' купленный за ' + str(d[0 + 1][0 + 1]) + ' рублей.'
-    sst = '\n'
-    for ind in range(len(d)):
-        sst = sst+str(d[ind+1][0])+' купленный за '+str(d[ind+1][1])+' рублей\n'
+        return a
 
-    print(sst)
+def deletecase2(msg):
+    message = re.findall(r"\d+", msg.text)[0]
+    with sqlite3.connect('database.db') as db:
+        cursor = db.cursor()
+        try:
+            cursor.execute("DELETE FROM cases WHERE caseid = ? AND userid = ?", [message, msg.from_user.id])
+            db.commit()
+            res = 'Готово 🥰'
+        except:
+            res = 'Не правильно был указан ID кейса'
+        return res
+
+if __name__ == "__main__":
+    d = []
+    with sqlite3.connect('database.db') as db:
+        cursor = db.cursor()
+        cursor.execute('SELECT caseid, name FROM cases WHERE userid = ?', [353170432])
+        a = cursor.fetchall()
+        print(a)
+        # for i in range(len(a)):
+        #     d[a[i][0]] = []
+        #     d[a[i][0]].append(a[i][1])
+        #     d[a[i][0]].append(a[i][2])
+        print(a[0][1])
     pass
