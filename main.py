@@ -1,16 +1,16 @@
 import mainparsing
-import sqlite3
 import maindatabasecode
 import telegramkey
 import telebot
 import sqlite3
 import traceback
+import time
 from telebot import types
 
 bot = telebot.TeleBot(telegramkey.bot)
+messageid = None
 @bot.message_handler(commands=['start'])
 def start(message):
-    print(message)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     btn1 = types.KeyboardButton("👨‍🏫 Мой профиль")
     btn2 = types.KeyboardButton("💼 Добавить кейс")
@@ -30,20 +30,7 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def buttons(message):
     if (message.text == "👨‍🏫 Мой профиль"):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-        btn1 = types.KeyboardButton("❕️Обновить названия")
-        btn2 = types.KeyboardButton("❔️Настроить токены")
-        btn3 = types.KeyboardButton("⭕️Вернуться в главное меню")
-        markup.add(btn1, btn2, btn3)
-        d = maindatabasecode.profileprint(message.from_user.id)
-        v = list(d.keys())
-        sst = '\n'
-        for ind in range(len(d)):
-            sst = sst + '<b>' + str(d[v[ind]][0]) + '</b>' + ' купленный за ' + '<b>' + str(d[v[ind]][1]) + '</b>' + ' рублей.\n'
-        msg = bot.send_message(message.chat.id, text=f"""
-        Привет {message.from_user.first_name}, твои кейсы:{sst}
-        """, reply_markup=markup, parse_mode='html')
-        bot.register_next_step_handler(msg,handler_profileprint)
+        myprofile(message,messageid)
     elif (message.text == "💼 Добавить кейс"):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("⭕️Вернуться в главное меню"))
@@ -61,8 +48,34 @@ def buttons(message):
         bot.send_message(message.chat.id, text="Пока пусто")
     else:
         bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
-        print(message)
         pass
+    print ('%s | @%s | %s'% (time.strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
+
+def myprofile(message,messageid):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    btn1 = types.KeyboardButton("❕️Обновить названия")
+    btn2 = types.KeyboardButton("❔️Настроить токены")
+    btn3 = types.KeyboardButton("⭕️Вернуться в главное меню")
+    btn4 = types.KeyboardButton('❌ Удалить кейсы')
+    markup.add(btn1, btn2, btn3, btn4)
+    d = maindatabasecode.profileprint(message.from_user.id)
+    v = list(d.keys())
+    sst = '\n'
+    for ind in range(len(d)):
+        sst = sst + '<b>' + str(d[v[ind]][0]) + '</b>' + ' купленный за ' + '<b>' + str(
+            d[v[ind]][1]) + '</b>' + ' рублей.\n'
+    if message.text == '👨‍🏫 Мой профиль':
+        msg = bot.send_message(message.chat.id, text=f"""
+                Привет {message.from_user.first_name}, твои кейсы:{sst}
+                """, reply_markup=markup, parse_mode='html')
+    else:
+        # msg = bot.edit_message_text(text=f"""
+        #         Привет {message.from_user.first_name}, твои кейсы:{sst}
+        #         """, chat_id=message.chat.id, message_id=messageid, reply_markup=markup, parse_mode='html')
+        msg = bot.edit_message_text(text=f"""Теперь твои кейсы:{sst}
+                """, chat_id=message.chat.id, message_id=messageid, parse_mode='html',)
+    bot.register_next_step_handler(msg, handler_profileprint)
+
 def handler_url(message):
     global url
     if message.text == "⭕️Вернуться в главное меню":
@@ -91,7 +104,7 @@ def handler_url(message):
                 cursor.execute('SELECT price FROM cases WHERE url = ? AND userid = ?', [url, message.from_user.id])
                 caseprice = str(cursor.fetchone()[0])+' руб.'
                 # print(str(cursor.fetchone()[0])+' руб.')
-                urltaken = 'Этот кейс уже записан и имеет находится под <b>id %s</b> в датабазе\nУстановленная цена:<b>%s</b> Хочешь перезаписать его цену?' % (caseid, caseprice)
+                urltaken = 'Этот кейс уже записан и имеет находится под <b>ID: %s</b> в датабазе\nУстановленная цена:<b>%s</b> Хочешь перезаписать его цену?' % (caseid, caseprice)
                 msg = bot.reply_to(message, text=urltaken, reply_markup=markup2, parse_mode='html')
                 bot.register_next_step_handler(msg, handler_url_taken)
     except sqlite3.Error as e:
@@ -146,10 +159,13 @@ def handler_price(message):
 
 def handler_profileprint(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup2 = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("❕️Обновить названия")
     btn2 = types.KeyboardButton("❔️Настроить токены")
     btn3 = types.KeyboardButton("⭕️Вернуться в главное меню")
-    markup.add(btn1, btn2, btn3)
+    btn4 = types.KeyboardButton('❌ Удалить кейсы')
+    markup.add(btn1, btn2, btn3, btn4)
+    markup2.add(btn3)
     if (message.text == "⭕️Вернуться в главное меню"):
         start(message)
         return
@@ -159,7 +175,26 @@ def handler_profileprint(message):
     elif message.text == '❔️Настроить токены':
         start(message)
         return
+    elif message.text == '❌ Удалить кейсы':
+        caselist = maindatabasecode.deletecase1(message.from_user.id)
+        deletecasetext = ''
+        for i in range(len(caselist)):
+            deletecasetext = deletecasetext + 'ID ' + str(caselist[i][0]) + ': ' + str(caselist[i][1])+'\n'
+        msg = bot.reply_to(message, f'Введите числовой ID кейса, который хотите удалить.\n{deletecasetext}', reply_markup=markup2)
+        bot.register_next_step_handler(msg, handler_deletecase)
 
-
+def handler_deletecase(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("⚪️Вернуться в главное меню"))
+    try:
+        messageid = bot.send_message(message.chat.id, text=maindatabasecode.deletecase2(message))
+        time.sleep(0.5)
+        myprofile(message, messageid.id)
+    except:
+        bot.send_message(message.chat.id, text="Ты чото делаешь не так, давай сначала", reply_markup=markup)
+        start(message)
+        print(traceback.format_exc())
 if __name__ == '__main__':
+    print('Date | @username | Message text')
     bot.infinity_polling()
+
