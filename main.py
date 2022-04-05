@@ -30,7 +30,7 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def buttons(message):
     if (message.text == "👨‍🏫 Мой профиль"):
-        myprofile(message,messageid)
+        myprofile(message)
     elif (message.text == "💼 Добавить кейс"):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("⭕️Вернуться в главное меню"))
@@ -51,7 +51,7 @@ def buttons(message):
         pass
     print ('%s | @%s | %s'% (time.strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
 
-def myprofile(message,messageid):
+def myprofile(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     btn1 = types.KeyboardButton("❕️Обновить названия")
     btn2 = types.KeyboardButton("❔️Настроить токены")
@@ -148,7 +148,7 @@ def handler_price(message):
             cursor.execute("UPDATE cases SET price = ? WHERE url = ? AND userid = ?", [price, url, message.from_user.id])
             db.commit()
             bot.reply_to(message, 'Принято!', reply_markup=markup)
-            bot.send_message(message.chat.id, text="Вернемся в главное меню? 🥰")
+            myprofile(message)
         except:
             print('чета ебнуло')
             print('Ошибка:\n', traceback.format_exc())
@@ -172,6 +172,7 @@ def handler_profileprint(message):
     elif message.text == '❕️Обновить названия':
         mainparsing.takenames(message.from_user.id)
         bot.reply_to(message, 'Названия добавлены в базу!', reply_markup=markup)
+        myprofile(message)
     elif message.text == '❔️Настроить токены':
         start(message)
         return
@@ -186,10 +187,13 @@ def handler_profileprint(message):
 def handler_deletecase(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton("⚪️Вернуться в главное меню"))
+    if (message.text == "⭕️Вернуться в главное меню"):
+        start(message)
+        return
     try:
-        messageid = bot.send_message(message.chat.id, text=maindatabasecode.deletecase2(message))
+        bot.send_message(message.chat.id, text=maindatabasecode.deletecase2(message))
         time.sleep(0.5)
-        myprofile(message, messageid.id)
+        myprofile(message)
     except:
         bot.send_message(message.chat.id, text="Ты чото делаешь не так, давай сначала", reply_markup=markup)
         start(message)
