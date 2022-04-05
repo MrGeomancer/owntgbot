@@ -3,6 +3,7 @@ import re
 from bs4 import BeautifulSoup
 import json
 import sqlite3
+import traceback
 
 headers = {
 
@@ -38,16 +39,21 @@ def takenames(tgid):
         cursor = db.cursor()
         cursor.execute('SELECT url FROM cases WHERE userid = ?', [tgid])
         a = cursor.fetchall()
-        for i in range(len(a)):
-            url.append(a[i][0])
-        cursor.execute('SELECT caseid FROM cases WHERE userid = ?', [tgid])
-        a = cursor.fetchall()
-        for i in range(len(a)):
-            caseid.append(a[i][0])
-        for i in range(len(url)):
-            soup = parsing(url[i])
-            qquotes = soup.find('span', class_='market_listing_item_name').text
-            cursor.execute("UPDATE cases SET name = ? WHERE userid = ? AND caseid = ?", [qquotes, tgid, caseid[i]])
+        try:
+            for i in range(len(a)):
+                url.append(a[i][0])
+            cursor.execute('SELECT caseid FROM cases WHERE userid = ?', [tgid])
+            a = cursor.fetchall()
+            for i in range(len(a)):
+                caseid.append(a[i][0])
+            for i in range(len(url)):
+                soup = parsing(url[i])
+                qquotes = soup.find('span', class_='market_listing_item_name').text
+                cursor.execute("UPDATE cases SET name = ? WHERE userid = ? AND caseid = ?", [qquotes, tgid, caseid[i]])
+                res = 'Ок'
+        except:
+            print(traceback.format_exc())
+            res = 'Не ок'
 
 def takeprice(soup):
     quotes = soup.findAll('script')

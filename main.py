@@ -69,11 +69,8 @@ def myprofile(message):
                 Привет {message.from_user.first_name}, твои кейсы:{sst}
                 """, reply_markup=markup, parse_mode='html')
     else:
-        # msg = bot.edit_message_text(text=f"""
-        #         Привет {message.from_user.first_name}, твои кейсы:{sst}
-        #         """, chat_id=message.chat.id, message_id=messageid, reply_markup=markup, parse_mode='html')
-        msg = bot.edit_message_text(text=f"""Теперь твои кейсы:{sst}
-                """, chat_id=message.chat.id, message_id=messageid, parse_mode='html',)
+        msg = bot.send_message(message.chat.id, text=f"""Теперь твои кейсы:{sst}
+                """,  parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(msg, handler_profileprint)
 
 def handler_url(message):
@@ -147,8 +144,8 @@ def handler_price(message):
             price = float(price.replace(",", '.'))
             cursor.execute("UPDATE cases SET price = ? WHERE url = ? AND userid = ?", [price, url, message.from_user.id])
             db.commit()
-            bot.reply_to(message, 'Принято!', reply_markup=markup)
-            myprofile(message)
+            bot.reply_to(message, 'Готово 🥰', reply_markup=markup)
+            start(message)
         except:
             print('чета ебнуло')
             print('Ошибка:\n', traceback.format_exc())
@@ -170,9 +167,12 @@ def handler_profileprint(message):
         start(message)
         return
     elif message.text == '❕️Обновить названия':
-        mainparsing.takenames(message.from_user.id)
-        bot.reply_to(message, 'Названия добавлены в базу!', reply_markup=markup)
-        myprofile(message)
+        if mainparsing.takenames(message.from_user.id) == 'Ок':
+            bot.reply_to(message, 'Названия добавлены в базу!', reply_markup=markup)
+            myprofile(message)
+        else:
+            bot.reply_to(message, 'Гдето ты напортачил...', reply_markup=markup)
+            myprofile(message)
     elif message.text == '❔️Настроить токены':
         start(message)
         return
