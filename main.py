@@ -36,8 +36,18 @@ def buttons(message):
         markup.add(types.KeyboardButton("⭕️Вернуться в главное меню"))
         msg = bot.send_message(message.chat.id, text="Давай ссылку на кейс", reply_markup=markup)
         bot.register_next_step_handler(msg, handler_url)
-    elif (message.text == "📈 Посмтреть на кейсы"):
-        bot.send_message(message.chat.id, text="Пока пусто")
+    elif (message.text == "📈 Посмтреть на кейсы" or '♾ Обновить цены'):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton("♾ Обновить цены"))
+        markup.add(types.KeyboardButton("⭕️Вернуться в главное меню"))
+        takepricemsg = mainparsing.takeprice(message.from_user.id)
+        if takepricemsg == 'Не ок':
+            msg = bot.send_message(message.chat.id, text="Где-то произошла ошибка.", reply_markup=markup)
+        else:
+            msg = bot.send_message(message.chat.id, text=takepricemsg, reply_markup=markup,
+                             parse_mode='html')
+        bot.register_next_step_handler(msg, handler_caselookup)
+
 
     elif message.text == "📈 Посмотреть на валюты":
         bot.send_message(message.chat.id, text="Пока пусто")
@@ -49,7 +59,7 @@ def buttons(message):
     else:
         bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
         pass
-    print ('%s | @%s | %s'% (time.strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
+    print('%s | @%s | %s'% (time.strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
 
 def myprofile(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
@@ -142,7 +152,8 @@ def handler_price(message):
         try:
             price = message.text
             price = float(price.replace(",", '.'))
-            cursor.execute("UPDATE cases SET price = ? WHERE url = ? AND userid = ?", [price, url, message.from_user.id])
+            cursor.execute("UPDATE cases SET price = ? WHERE url = ? AND userid = ?", [price, url,
+                                                                                       message.from_user.id])
             db.commit()
             bot.reply_to(message, 'Готово 🥰', reply_markup=markup)
             start(message)
@@ -174,14 +185,19 @@ def handler_profileprint(message):
             bot.reply_to(message, 'Гдето ты напортачил...', reply_markup=markup)
             myprofile(message)
     elif message.text == '❔️Настроить токены':
-        start(message)
-        return
+        if mainparsing.taketokens(message.from_user.id) == 'Ок':
+            bot.reply_to(message, 'Токены добавлены в базу!\nНо ты их не увидишь...', reply_markup=markup)
+            start(message)
+        else:
+            bot.reply_to(message, 'Гдето ты напортачил...', reply_markup=markup)
+            myprofile(message)
     elif message.text == '❌ Удалить кейсы':
         caselist = maindatabasecode.deletecase1(message.from_user.id)
         deletecasetext = ''
         for i in range(len(caselist)):
             deletecasetext = deletecasetext + 'ID ' + str(caselist[i][0]) + ': ' + str(caselist[i][1])+'\n'
-        msg = bot.reply_to(message, f'Введите числовой ID кейса, который хотите удалить.\n{deletecasetext}', reply_markup=markup2)
+        msg = bot.reply_to(message, f'Введите числовой ID кейса, который хотите удалить.\n{deletecasetext}',
+                           reply_markup=markup2)
         bot.register_next_step_handler(msg, handler_deletecase)
 
 def handler_deletecase(message):
@@ -198,6 +214,16 @@ def handler_deletecase(message):
         bot.send_message(message.chat.id, text="Ты чото делаешь не так, давай сначала", reply_markup=markup)
         start(message)
         print(traceback.format_exc())
+
+def handler_caselookup(message):
+    if (message.text == "⭕️Вернуться в главное меню"):
+        start(message)
+        return
+    else:
+        buttons(message)
+        return
+
+
 if __name__ == '__main__':
     print('Date | @username | Message text')
     bot.infinity_polling()
