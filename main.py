@@ -225,6 +225,6 @@ def handler_caselookup(message):
 
 
 if __name__ == '__main__':
-    print('Date | @username | Message text')
+    print('  Date         | @username | Message text')
     bot.infinity_polling()
 
