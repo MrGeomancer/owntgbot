@@ -115,7 +115,7 @@ def takeprice(tgid):
             else:
                 x = round(((float(oldprice[i]/float(floatprice[i])))), 1)
                 s = '🟥 Потери в <b>' + str(x) + '</b> раз...'
-            ttext = ttext + str(i + 1) + '.' + str(a[i][1]) + ' сейчас можно купить за <b>' + price[
+            ttext = ttext + str(i + 1) + '.' + str(a[i][1]) + ' сейчас можно продать за <b>' + price[
                 i] + '</b>' + s + '\n'
         return ttext
     except:
