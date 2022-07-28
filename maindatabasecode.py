@@ -13,6 +13,7 @@ with sqlite3.connect('database.db') as db:
     name TEXT,
     price REAL DEFAULT (0) 
     )""")
+    db.commit()
     # cursor.execute('SELECT price FROM cases WHERE url = ?', ['qq'])
     # caseid = cursor.fetchone()[0]
     # cursor.execute('ALTER TABLE cases ADD COLUMN userid "TEXT"')

@@ -42,7 +42,6 @@ def buttons(message):
         bot.register_next_step_handler(msg, handler_url)
 
     elif message.text == "📈 Посмтреть на кейсы" or message.text == '♾ Обновить цены':
-        print('я сука')
         markup3 = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         btn1 = types.KeyboardButton("💼 Добавить кейс")
         btn2 = types.KeyboardButton("♾ Обновить цены")
