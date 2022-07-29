@@ -4,7 +4,7 @@ import telegramkey
 import telebot
 import sqlite3
 import traceback
-import time
+from time import sleep, strftime
 from telebot import types
 first_gramm = None
 first_price = None
@@ -49,7 +49,10 @@ def buttons(message):
         markup3.add(btn1, btn2, btn3)
         takepricemsg = mainparsing.takeprice(message.from_user.id)
         if takepricemsg == 'Не ок':
-            msg = bot.send_message(message.chat.id, text="Где-то произошла ошибка.", reply_markup=markup3)
+            sleep(3)
+            takepricemsg = mainparsing.takeprice(message.from_user.id)
+            if takepricemsg == 'Не ок':
+                msg = bot.send_message(message.chat.id, text="Где-то произошла ошибка.", reply_markup=markup3)
         else:
             msg = bot.send_message(message.chat.id, text=takepricemsg, reply_markup=markup3,
                                    parse_mode='html')
@@ -71,7 +74,7 @@ def buttons(message):
         bot.send_message(message.chat.id, text="На такую комманду я не запрограммировал..")
         start(message)
         pass
-    print('%s | @%s | %s' % (time.strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
+    print('%s | @%s | %s' % (strftime('%H:%M:%S %d.%m'), message.from_user.username, message.text))
 
 
 def handler_priceculc0(message):
@@ -337,7 +340,7 @@ def handler_deletecase(message):
         return
     try:
         bot.send_message(message.chat.id, text=maindatabasecode.deletecase2(message))
-        time.sleep(0.5)
+        sleep(0.5)
         myprofile(message)
     except:
         bot.send_message(message.chat.id, text="Ты чото делаешь не так, давай сначала", reply_markup=markup)
